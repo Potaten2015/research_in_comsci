@@ -11,55 +11,19 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Conference Paper Title*\\
-{\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
-should not be used}
-\thanks{Identify applicable funding agency here. If none, delete this.}
-}
+\title{Cost Effective Deployment of Hardware Accelerators Across Logic Simulator Modules}
 
-\author{\IEEEauthorblockN{1\textsuperscript{st} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{3\textsuperscript{rd} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{4\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{5\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{6\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
+\author{\IEEEauthorblockN{1\textsuperscript{st} Taten H. Knight}
+\IEEEauthorblockA{\textit{College of Aviation, Science, and Technology} \\
+\textit{Lewis University}\\
+Romeoville, IL \\
+tatenhknight@lewisu.edu}
 }
 
 \maketitle
 
 \begin{abstract}
-This document is a model and instructions for \LaTeX.
-This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
-or Math in Paper Title or Abstract.
+With the continuous growth of the the AI/ML sector and the need to increase the speed of learning and inference tasks, there has been increasing pressure to quickly produce, verify, and iterate on, System-on-Chip (SoC) configurations. These systems are often deployed in safety-critical situations such as autonomous vehicle control, and the correctness of the system is quite literally life or death. They are also being deployed increasingly frequently in the mobile device space. The Apple M1 and subsequent "M" series processors, as well as Google's Pixel processor, are all SoC configurations. This configuration is often space saving and works well for small devices and it is also ultra-efficient. It reduces latency by decreasing the physical distance between components. In this paper I explore algorithms for the design of a distributed discrete-event simulator, the problems that they face and solve, and I propose a cost effective solution for simulator implementation.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -67,8 +31,7 @@ component, formatting, style, styling, insert
 \end{IEEEkeywords}
 
 \section{Introduction}
-This document is a model and instructions for \LaTeX.
-Please observe the conference page limits. 
+The SoC is quickly becoming the gold standard for hardware as consumer tech-giants are attempting to outdo each other in terms of speed, efficiency, and price. At the same time, there has been a relatively recent revolution in the use of ML in consumer gadgets for increasing picture and video quality and verbal and written language processing. There has also been a shove for mass production of a fully autonomous vehicle, which requires custom silicon to be feasible at scale. The avionics industry were relatively early adopters of formal verification techniques for embedded systems; with the growth of the industry and newer, software dependent sub-systems, the task of writing test cases is unwieldy and unrealistic. The industry uses formal verification at the source code level for multiple requirements and sees significant savings for those requirements are recurrent --- "a person-month per flight software release" \cite{b1}. 
 
 \section{Ease of Use}
 
@@ -273,7 +236,8 @@ For papers published in translation journals, please give the English
 citation first, followed by the original foreign-language citation \cite{b6}.
 
 \begin{thebibliography}{00}
-\bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
+\bibitem{b1} Y. Moy, E. Ledinot, H. Delseny, V. Wiels and B. Monate, "Testing or Formal Verification: DO-178C Alternatives and Industrial Experience" in IEEE Software, vol. 30, no. 03, pp. 50-57, 2013.
+doi: 10.1109/MS.2013.43
 \bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
 \bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
 \bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.

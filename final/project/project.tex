@@ -23,17 +23,107 @@ tatenhknight@lewisu.edu}
 \maketitle
 
 \begin{abstract}
-With the continuous growth of the the AI/ML sector and the need to increase the speed of learning and inference tasks, there has been increasing pressure to quickly produce, verify, and iterate on, System-on-Chip (SoC) configurations. These systems are often deployed in safety-critical situations such as autonomous vehicle control, and the correctness of the system is quite literally life or death. They are also being deployed increasingly frequently in the mobile device space. The Apple M1 and subsequent "M" series processors, as well as Google's Pixel processor, are all SoC configurations. This configuration is often space saving and works well for small devices and it is also ultra-efficient. It reduces latency by decreasing the physical distance between components. In this paper I explore algorithms for the design of a distributed discrete-event simulator, the problems that they face and solve, and I propose a cost effective solution for simulator implementation.
+With the continuous growth of the the AI/ML sector and the need to increase the speed of learning and inference tasks, there has been increasing pressure to quickly produce, verify, and iterate on, System-on-Chip (SoC) configurations. A SoC configuration implies that the entire system ---CPU, gpu, memory, registers, etc. --- exist on a single board, versus the older paradigm of being made up of multiple physical chips. These systems are often deployed in safety-critical situations such as autonomous vehicle control and avionics, and the verified correctness of the system is quite literally life or death. They are also being deployed increasingly frequently in the mobile device space. The Apple M1 and subsequent "M" series processors, as well as Google's Pixel processor, are all SoC configurations. This configuration is often space saving and works well for small devices and it is also ultra-efficient. It reduces latency by decreasing the physical distance between components. This paper explores the history of PDES and distributed simulation algorithms, the evolution of the design of distributed discrete-event simulators, and the problems researchers and industry professionals face. There is an overview of the simulation architecture and an analysis of past and present algorithms and hardware advancements is performed. The paper wraps up with the proposal of a cost effective solution for simulator implementation, alongside explanation and justification of the proposal based on the relevant literature.
 \end{abstract}
 
 \begin{IEEEkeywords}
 component, formatting, style, styling, insert
 \end{IEEEkeywords}
 
-\section{Introduction}
-The SoC is quickly becoming the gold standard for hardware as consumer tech-giants are attempting to outdo each other in terms of speed, efficiency, and price. At the same time, there has been a relatively recent revolution in the use of ML in consumer gadgets for increasing picture and video quality and verbal and written language processing. There has also been a shove for mass production of a fully autonomous vehicle, which requires custom silicon to be feasible at scale. The avionics industry were relatively early adopters of formal verification techniques for embedded systems; with the growth of the industry and newer, software dependent sub-systems, the task of writing test cases is unwieldy and unrealistic. The industry uses formal verification at the source code level for multiple requirements and sees significant savings for those requirements are recurrent --- "a person-month per flight software release" \cite{b1}. 
+\section{Introduction (1 Page)}
+\subsection{Commercial Use}
+The SoC is quickly becoming the gold standard for hardware as consumer tech-giants are attempting to outdo each other in terms of speed, efficiency, and price. At the same time, there has been a relatively recent revolution in the use of ML in consumer gadgets for increasing picture and video quality and verbal and written language processing. There has also been a shove for mass production of a fully autonomous vehicle, which requires custom silicon to be feasible at scale. The avionics industry were relatively early adopters of formal verification techniques for embedded systems; with the growth of the industry and newer, software dependent sub-systems, the task of writing test cases is unwieldy and unrealistic. The industry uses formal verification at the source code level for multiple requirements and sees significant savings for those requirements that are recurrent --- "a person-month per flight software release" \cite{b1}. Verification across a state-space that is not event-driven because the simulation is largely parallelizable, meaning that we are not constrained by maintaining sequential causal relationships across parallel state changes. A vehicle is a simple system, and although it does not lend itself well to parallelization, it can be adequately modeled with a reasonable amount of resources due to that low complexity.
 
-\section{Ease of Use}
+\subsection{Academia}
+The field of distributed systems and PDES (parallel discrete event simulation) has ballooned with the wide availability of cloud computing resources, the availability of super computing resources in academia via university sponsors and project funding, and overall out of necessity driven by industry growth. "PDES is concerned with the technologies associated with distributing the execution of a single run of a discrete event simulation program across multiple processors in a high performance computing system. Such platforms include shared-memory multiprocessors and message-based cluster computers. The central goal of PDES is typically to accelerate the execution of the simulation [...]. In contrast to parallel simulations where the processors executing the simulation reside within a cabinet inside a machine room, a distributed simulation may execute on a set of machines interconnected through a local area network, globally distributed computers communicating via the Internet, or predictive simulations embedded within a physical environment such as a sensor network monitoring traffic in a city" \cite{b2}. The problem of synchronization exists in both these fields, and with increases in network transfer speeds and bandwidth, PDES and distributed simulation studies continue to provide each other with new methodologies and approaches.
+
+\section{The Problem (1 Page)}
+The problem that we are presented with is the analysis of available technology (software, hardware, and algorithms), that can be implemented across the separate modules of the architecture shown in Fig.~\ref{arch} to increase overall efficiency, while remaining cost effective. 
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\linewidth]{./images/architecture.png}}
+\caption{Architecture of the Logic Simulator (EBC: Embedded Computing Module, STA: Static Timing Analyzer)}
+\label{arch}
+\end{figure}
+
+Each module has unique characteristics to consider. There will be a basic overview of all of the modules in order to guarantee some level of contextual clarity for the discussion of a solution. 
+
+\subsection{Design Under Test Module}
+The aptly named design under test (DUT) module is the module that expresses the design in terms of some language (likely C or Verilog, considering the remainder of the architecture) \cite{b3} . This represents the current design that will be tested. 
+
+\subsection{Verilator}
+The DUT module feeds into two modules, one of which is the Verilator. Verilator is a free and open-source tool provided by Veripool that can be used to generate models based on the specified Verilog design. "Verilator is invoked with parameters similar to GCC or Synopsys's VCS. It "Verilates" the specified Verilog or SystemVerilog code by reading it, performing lint checks, and optionally inserting assertion checks and coverage-analysis points. It outputs single- or multi-threaded .cpp and .h files, the "Verilated" code"\footnote{https://www.veripool.org/verilator/}.
+
+\subsection{FPGA/Cell Library}
+"The FPGA generic architecture is composed of a matrix of configurable logic blocks (CLBs) [...] This matrix core is bordered by a ring of configurable input/output blocks (IOBs), whose number can reach 1000 user IOBs. Finally, all these resources communicate amongst themselves through a programmable interconnection network" \cite{b4}. A very high level FPGA diagram is shown in Fig.~\ref{fpga}.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\linewidth]{./images/fpga.png}}
+\caption{Basic FPGA Diagram \cite{b4}}
+\label{fpga}
+\end{figure}
+
+Each of the components shown is configurable, which has the potential to be overwhelming for a software engineer attempting to configure the chip without in depth knowledge of chip architecture. To mitigate this \cite{b4} manufacturers have provided cell libraries. A cell library is akin to a set of FPGA legos that can be used to design a chip.
+
+\subsection{Synthesizer and STA Module}
+The synthesizer and STA module takes both the DUT and FPGA configuration as inputs, and outputs the timing models for the software. This step is extremely important; when running a PDES, correct timing models are required to accurately determine synchronization of the discrete events. If the timings are inaccurate then the efficiency and speed of the simulation itself are mute.
+
+\subsection{Timing Based C/C++ Model Generator}
+The timing based C/C++ model generator combine the C/C++ models outputted by Verilator with the timing models from the synthesizer and STA module, and provide the final model that will be the input to the PDES simulator kernel.
+
+\subsection{Testbench Deployment}
+The testbench is both the physical and virtual environment within which the tests are ran. It includes the hardware of the deployment, and details such as the OS and other information that can affect the test runs.
+
+\subsection{Parallel Discrete-event Simulator Kernel}
+The PDES kernel is the core of the simulation. It distributes the event information to the OpenCL driver for processing, receives the information, and uses this information to update and distribute subsequent events. It also manages and provides final results to the testbench deployment.
+
+\subsection{OpenCL Client Driver}
+OpenCL drivers take events for calculation from the PDES kernel and distribute them to the appropriate embedded computing module, and direct the event simulation results back to the kernel.
+
+\subsection{Embedded Computing Module}
+Each embedded computing module (EBC) handles the processing of one discrete event or logical process (LP) at a time. These modules can be any type of chip that is appropriate to dealing with a certain event. With a local simulation each EBC is likely a CPU thread or core.
+
+\section{Related Work (1 Page)}
+\subsection{Chandy, Misra, and Bryant}
+There is a myriad of work on methods for PDES acceleration. "The parallel and distributed simulation field began in the late 1970’s with seminal work by Chandy, Misra, and Bryant who defined the synchronization problem and a solution approach" \cite{b2}. When simulating discrete events of a DUT, it is essential that each event is simulated with all of the relevant information that would be relevant to that event in the real world, which means maintaining causality and continuity in the timing based model. The Chandy, Misra, and Bryant (CMB) algorithm is an elegant and simple solution to this problem. It guarantees that events are sent from LP to LP in timestamped order, and blocks the execution of an LP unless it is guaranteed that LP will not receive an earlier event. Fig.~\ref{cmb_deadlock} provides a visual explanation of the algorithm, as well as a visualization of one potential problem: deadlock.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\linewidth]{./images/cmb_deadlock.png}}
+\caption{CMB Algorithm and Resultant Deadlock Case\cite{b2}}
+\label{cmb_deadlock}
+\end{figure}
+
+CMB solves the deadlock by forcing each LP to send null messages with a carefully tuned lookahead value. "If an LP is currently at simulation time T, and its lookahead value is L, then any message later sent by the LP must have a timestamp of at least T+L" \cite{b2}. Fig.~\ref{lookahead} shows the benefits of having a lookahead value.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\linewidth]{./images/lookahead.png}}
+\caption{Benefits of lookahead value \cite{b2}}
+\label{lookahead}
+\end{figure}
+
+A much larger number of events can be processed safely by having this value present. The lookahead value does need to be tuned well in order to avoid lookahead creep. Lookahead creep results in having a lookahead value that is potentially too small. If we have a value of .1 simulation seconds, and the next viable timestamp is 1 second above the current LP times, there will be ten LP messages sent that contain no event for processing, which consumes time.
+
+\subsection{Second Generation Algorithms}
+Second generation algorithms took advantage of the lessons learned from CMB. Two of these algorithms are Bounded Lag and YAWNS, both of which are synchronous algorithms. "meaning they utilize global synchronization points (barriers) as a fundamental element of the algorithm. These algorithms divide the computation into a sequence of cycles, or epochs. A global synchronization using a barrier primitive is used to separate the epochs. Each epoch involves (1) determining which events can be safely processed without risk of an LP later receiving a smaller timestamped event, (2) processing these safe events, possibly generating one or more new event messages, and (3) delivering these messages to their destination LPs. The computation repeatedly executes these epochs until the simulation has been completed" \cite{b2}. CMB and YAWNS are among the most popular algorithms to this day due to their simplicity and effectiveness, which is impressive considering they were developed in the late 70s and late 80s.
+
+\subsection{Time Warp}
+Time warp is the first optimistic synchronization algorithm. Optimistic algorithms allow errors to occur and establish methods for rolling back those errors when they are discovered. The Time Warp algorithm has a global control mechanism and a local control mechanism. When an error occurs (an event is processed out of error) there are two things that need to be reversed; sent messages triggered by the event and state changes made. There are three local control methods that handle state change rollback. \textit{Copy state saving} saves the state of the LP prior to processing each event. This consumes a large amount of memory as every state is temporarily saved for each LP. Next is \textit{incremental state saving} which saves the variable only before it is modified, allowing it to remain unsaved for an event if that event does not modify the state. This is much more efficient that copy state saving. Lastly there is \textit{reverse computation} which computes the reverse of a computation, for example if an event increments a variable, reverse computation decrements the variable. For some computations this reverse is not possible, and the program falls back to incremental state saving \cite{b2}. To undo sent messages, 'anti-messages' are sent, which signals the LP to reverse state changes and to send out another fleet of anti-messages that destroy those messages sent via the error. This can cause a cascade rollback wherein many anti-messages are sent and states reversed. This is the major downfall of an optimistic algorithm.
+The global control mechanism established in \cite{b6} and improved upon in \cite{b7}.
+
+
+\section{Potential Solution (1 Page)}
+I propose a multi-level solution for the proposed research question that applies hardware acceleration and optimized algorithms at each possible module. This solution was developed by identifying the most obviously optimizable aspects of each module and finding well researched solutions. I also tried to keep the solutions realistic, avoiding a pure pay-for-performance approach in favor of a balanced solution.
+\section{The Details (5 Pages)}
+\subsection{FPGA/Cell Library}
+A field programmable gate array (FPGA) 
+\subsection{Design Under Test (DUT) Module}
+\subsection{Verilator}
+\subsection{Synthesizer and STA Module}
+\subsection{Timing Based C/C++ Model Generator}
+\subsection{Parallel Discrete-event Simulator Kernel}
+\subsection{OpenCL Client Driver}
+\subsection{Embedded Computing Module}
+\section{Conclusion and Further Work (1 Page)}
 
 \subsection{Maintaining the Integrity of the Specifications}
 
@@ -236,17 +326,17 @@ For papers published in translation journals, please give the English
 citation first, followed by the original foreign-language citation \cite{b6}.
 
 \begin{thebibliography}{00}
-\bibitem{b1} Y. Moy, E. Ledinot, H. Delseny, V. Wiels and B. Monate, "Testing or Formal Verification: DO-178C Alternatives and Industrial Experience" in IEEE Software, vol. 30, no. 03, pp. 50-57, 2013.
+\bibitem{b1} Y. Moy, E. Ledinot, H. Delseny, V. Wiels and B. Monate, "Testing or Formal Verification: DO-178C Alternatives and Industrial Experience," in IEEE Software, vol. 30, no. 03, pp. 50-57, 2013.
 doi: 10.1109/MS.2013.43
-\bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
-\bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
-\bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.
-\bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
-\bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
+\bibitem{b2} R. Fujimoto, "Parallel and Distributed Simulation", Proceedings of the 2015 Winter Simulation Conference, L. Yilmaz, W. K. V. Chan, I. Moon, T. M. K. Roeder, C. Macal, and M. D. Rossetti, eds
+\bibitem{b3} R. C. Armstrong, R. J. Punnoose, M. H. Wong, J. R. Mayo, ``Survey of Existing Tools for Formal Verification'', in Sandia Report, 2014.
+\bibitem{b4} E. Monmasson, M. Cirstea, ``FPGA Design Methodology for Industrial Control
+Systems – a Review'', 
+\bibitem{b5} R. Nane, V. Sima, C. Pilato, J. Choi, B.Fort, A. Canis, et al., ``A Survey and Evaluation of FPGA High-Level Synthesis Tools'' in IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems, vol. 35, no. 10, pp. 1591-1604, Oct. 2016, doi: 10.1109/TCAD.2015.2513673.
+\bibitem{b6} B. Samadi, "Distributed Simulation, Algorithms and Performance Analysis", Computer Science
+Department, University of California, Los Angeles, Los Angeles, California.
+\bibitem{b7} F. Mattern, Efficient Algorithms for Distributed Snapshots and Global Virtual Time Approximation, Journal of Parallel and Distributed Computing, Volume 18, Issue 4, 1993, Pages 423-434, ISSN 0743-7315, https://doi.org 10.1006/jpdc.1993.1075.
 \bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
 \end{thebibliography}
-\vspace{12pt}
-\color{red}
-IEEE conference templates contain guidance text for composing and formatting conference papers. Please ensure that all template text is removed from your conference paper prior to submission to the conference. Failure to remove the template text from your paper may result in your paper not being published.
 
 \end{document}
